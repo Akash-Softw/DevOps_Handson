@@ -1,7 +1,8 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect, url_for, session
 import sqlite3
 
 app = Flask(__name__)
+app.secret_key = "supersecretkey"  # For session management
 DB_NAME = "UserCreden.db"
 
 # --- Initialize Database ---
@@ -39,14 +40,13 @@ def signup():
         cursor.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", 
                        (username, email, password))
         conn.commit()
-        msg = "Signup successful! Now login."
+        msg = "✅ Signup successful! Now login."
     except sqlite3.IntegrityError:
-        msg = "Username already exists!"
+        msg = "❌ Username already exists!"
     conn.close()
-    
     return render_template("index.html", message=msg)
 
-# --- Login Logic ---
+# --- Login Logic with Dashboard ---
 @app.route("/login", methods=["POST"])
 def login():
     username = request.form["username"]
@@ -59,11 +59,18 @@ def login():
     conn.close()
 
     if user:
-        msg = f"Welcome, {username}!"
+        session["username"] = username
+        message = f"{username} is now focused on balancing a thriving career in DevOps, maintaining great health, and building meaningful relationships."
+        return render_template("dashboard.html", message=message)
     else:
         msg = "Invalid username or password!"
-    
-    return render_template("index.html", message=msg)
+        return render_template("index.html", message=msg)
+
+# --- Logout Route ---
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("home"))
 
 if __name__ == "__main__":
     app.run(debug=True)
