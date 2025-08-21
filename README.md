@@ -1,3 +1,2 @@
 # DevOps_Handson
-
-CI/CD cloud implementation will be there
+Use python 3.12 and flask 3.1.1 to run the project.
